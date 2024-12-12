@@ -1,0 +1,253 @@
+task:
+  name: AnymalTerrain
+  physics_engine: physx
+  env:
+    numEnvs: ${resolve_default:4096,${...num_envs}}
+    numObservations: 188
+    numActions: 12
+    envSpacing: 3.0
+    enableDebugVis: false
+    terrain:
+      terrainType: trimesh
+      staticFriction: 1.0
+      dynamicFriction: 1.0
+      restitution: 0.0
+      curriculum: true
+      maxInitMapLevel: 0
+      mapLength: 8.0
+      mapWidth: 8.0
+      numLevels: 10
+      numTerrains: 20
+      terrainProportions:
+      - 0.1
+      - 0.1
+      - 0.35
+      - 0.25
+      - 0.2
+      slopeTreshold: 0.5
+    baseInitState:
+      pos:
+      - 0.0
+      - 0.0
+      - 0.62
+      rot:
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      vLinear:
+      - 0.0
+      - 0.0
+      - 0.0
+      vAngular:
+      - 0.0
+      - 0.0
+      - 0.0
+    randomCommandVelocityRanges:
+      linear_x:
+      - -1.0
+      - 1.0
+      linear_y:
+      - -1.0
+      - 1.0
+      yaw:
+      - -3.14
+      - 3.14
+    control:
+      stiffness: 80.0
+      damping: 2.0
+      actionScale: 0.5
+      decimation: 4
+    defaultJointAngles:
+      LF_HAA: 0.03
+      LH_HAA: 0.03
+      RF_HAA: -0.03
+      RH_HAA: -0.03
+      LF_HFE: 0.4
+      LH_HFE: -0.4
+      RF_HFE: 0.4
+      RH_HFE: -0.4
+      LF_KFE: -0.8
+      LH_KFE: 0.8
+      RF_KFE: -0.8
+      RH_KFE: 0.8
+    urdfAsset:
+      file: urdf/anymal_c/urdf/anymal_minimal.urdf
+      footName: SHANK
+      kneeName: THIGH
+      collapseFixedJoints: true
+      fixBaseLink: false
+      defaultDofDriveMode: 4
+    learn:
+      allowKneeContacts: true
+      terminalReward: 0.0
+      linearVelocityXYRewardScale: 1.0
+      linearVelocityZRewardScale: -4.0
+      angularVelocityXYRewardScale: -0.05
+      angularVelocityZRewardScale: 0.5
+      orientationRewardScale: -0.0
+      torqueRewardScale: -2.0e-05
+      jointAccRewardScale: -0.0005
+      baseHeightRewardScale: -0.0
+      feetAirTimeRewardScale: 1.0
+      kneeCollisionRewardScale: -0.25
+      feetStumbleRewardScale: -0.0
+      actionRateRewardScale: -0.01
+      hipRewardScale: -0.0
+      linearVelocityScale: 2.0
+      angularVelocityScale: 0.25
+      dofPositionScale: 1.0
+      dofVelocityScale: 0.05
+      heightMeasurementScale: 5.0
+      addNoise: true
+      noiseLevel: 1.0
+      dofPositionNoise: 0.01
+      dofVelocityNoise: 1.5
+      linearVelocityNoise: 0.1
+      angularVelocityNoise: 0.2
+      gravityNoise: 0.05
+      heightMeasurementNoise: 0.06
+      randomizeFriction: true
+      frictionRange:
+      - 0.5
+      - 1.25
+      pushRobots: true
+      pushInterval_s: 15
+      episodeLength_s: 20
+    viewer:
+      refEnv: 0
+      pos:
+      - 0
+      - 0
+      - 10
+      lookat:
+      - 1.0
+      - 1
+      - 9
+    enableCameraSensors: false
+  sim:
+    dt: 0.005
+    substeps: 1
+    up_axis: z
+    use_gpu_pipeline: ${eq:${...pipeline},"gpu"}
+    gravity:
+    - 0.0
+    - 0.0
+    - -9.81
+    physx:
+      num_threads: ${....num_threads}
+      solver_type: ${....solver_type}
+      use_gpu: ${contains:"cuda",${....sim_device}}
+      num_position_iterations: 4
+      num_velocity_iterations: 1
+      contact_offset: 0.02
+      rest_offset: 0.0
+      bounce_threshold_velocity: 0.2
+      max_depenetration_velocity: 100.0
+      default_buffer_size_multiplier: 5.0
+      max_gpu_contact_pairs: 8388608
+      num_subscenes: ${....num_subscenes}
+      contact_collection: 1
+  task:
+    randomize: false
+train:
+  params:
+    seed: ${...seed}
+    algo:
+      name: a2c_continuous
+    model:
+      name: continuous_a2c_logstd
+    network:
+      name: actor_critic
+      separate: true
+      space:
+        continuous:
+          mu_activation: None
+          sigma_activation: None
+          mu_init:
+            name: default
+          sigma_init:
+            name: const_initializer
+            val: 0.0
+          fixed_sigma: true
+      mlp:
+        units:
+        - 512
+        - 256
+        - 128
+        activation: elu
+        d2rl: false
+        initializer:
+          name: default
+        regularizer:
+          name: None
+    load_checkpoint: ${if:${...checkpoint},True,False}
+    load_path: ${...checkpoint}
+    config:
+      name: ${resolve_default:AnymalTerrain,${....experiment}}
+      full_experiment_name: ${.name}
+      env_name: rlgpu
+      ppo: true
+      multi_gpu: ${....multi_gpu}
+      mixed_precision: true
+      normalize_input: true
+      normalize_value: true
+      normalize_advantage: true
+      value_bootstrap: true
+      clip_actions: false
+      num_actors: ${....task.env.numEnvs}
+      reward_shaper:
+        scale_value: 1.0
+      gamma: 0.99
+      tau: 0.95
+      e_clip: 0.2
+      entropy_coef: 0.001
+      learning_rate: 0.0003
+      lr_schedule: adaptive
+      kl_threshold: 0.008
+      truncate_grads: true
+      grad_norm: 1.0
+      horizon_length: 24
+      minibatch_size: 16384
+      mini_epochs: 5
+      critic_coef: 2
+      clip_value: true
+      seq_len: 4
+      bounds_loss_coef: 0.0
+      max_epochs: ${resolve_default:1500,${....max_iterations}}
+      save_best_after: 100
+      score_to_win: 20000
+      save_frequency: 50
+      print_stats: true
+pbt:
+  enabled: false
+task_name: ${task.name}
+experiment: ''
+num_envs: 8
+seed: 42
+torch_deterministic: false
+max_iterations: ''
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: false
+checkpoint: ''
+sigma: ''
+multi_gpu: false
+wandb_activate: false
+wandb_group: ''
+wandb_name: ${train.params.config.name}
+wandb_entity: ''
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir: ''
+capture_video: false
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: true
+headless: false

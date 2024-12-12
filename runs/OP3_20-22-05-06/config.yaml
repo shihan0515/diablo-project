@@ -1,0 +1,367 @@
+task:
+  name: diablo
+  physics_engine: ${..physics_engine}
+  env:
+    numEnvs: ${resolve_default:4096,${...num_envs}}
+    envSpacing: 1.0
+    clipObservations: 5.0
+    clipActions: 1.0
+    plane:
+      staticFriction: 1.0
+      dynamicFriction: 1.0
+      restitution: 0.0
+    baseInitState:
+      pos:
+      - -0.15
+      - 0.0
+      - 0.255
+      rot:
+      - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+      vLinear:
+      - 0.0
+      - 0.0
+      - 0.0
+      vAngular:
+      - 0.0
+      - 0.0
+      - 0.0
+    randomCommandVelocityRanges:
+      linear_x:
+      - 0.0
+      - 0.0
+      linear_y:
+      - 0.0
+      - 0.0
+      yaw:
+      - 0.0
+      - 0.0
+      heading:
+      - -3.14
+      - 3.14
+    goalState:
+      goal:
+      - 1000.0
+      - 0.0
+      - 0.0
+    control:
+      stiffness: 1000.0
+      damping: 20.0
+      actionScale: 0.8
+      powerScale: 0.1
+      controlFrequencyInv: 1
+      control_type: P
+      KpGain: 1
+      KdGain: 0.1
+    defaultJointAngles:
+      head_pan: 0
+      head_tilt: 0
+      l_el: 1.4
+      l_index_base: 0
+      l_index_middle: 0
+      l_index_tip: 0
+      l_mid_base: 0
+      l_mid_middle: 0
+      l_mid_tip: 0
+      l_sho_pitch: 0
+      l_sho_roll: 1
+      l_thumb_base: 0
+      l_thumb_middle: 0
+      l_thumb_tip: 0
+      l_wrist: 0
+      r_el: -1.4
+      r_index_base: 0
+      r_index_middle: 0
+      r_index_tip: 0
+      r_mid_base: 0
+      r_mid_middle: 0
+      r_mid_tip: 0
+      r_sho_pitch: 0
+      r_sho_roll: -1
+      r_thumb_base: 0
+      r_thumb_middle: 0
+      r_thumb_tip: 0
+      r_wrist: 0
+    urdfAsset:
+      collapseFixedJoints: true
+      terminate_after_contacts_on: hip
+      fixBaseLink: false
+      defaultDofDriveMode: 1
+    learn:
+      linearVelocityXYRewardScale: 1.0
+      angularVelocityZRewardScale: 0.5
+      torqueRewardScale: -1.0e-05
+      headingScale: 1
+      upScale: 0.1
+      actionRateRewardScale: -0.01
+      hipRewardScale: -0.0
+      jointAccRewardScale: -0.0005
+      standRewardScale: 0
+      noflyRewardScale: 0.5
+      feetAirTimeRewardScale: 0.3
+      syncronizeHipRewardScale: -0.00025
+      linearVelocityScale: 3.0
+      angularVelocityScale: 0.25
+      dofPositionScale: 1.0
+      dofVelocityScale: 0.01
+      episodeLength_s: 50
+      pushInterval_s: 15
+    viewer:
+      refEnv: 0
+      pos:
+      - 0.6
+      - -0.6
+      - 0.5
+      lookat:
+      - -0.6
+      - 0.6
+      - 0.2
+    enableCameraSensors: false
+  sim:
+    dt: 0.02
+    substeps: 2
+    up_axis: z
+    use_gpu_pipeline: ${eq:${...pipeline},"gpu"}
+    gravity:
+    - 0.0
+    - 0.0
+    - -9.81
+    physx:
+      num_threads: ${....num_threads}
+      solver_type: ${....solver_type}
+      use_gpu: ${contains:"cuda",${....sim_device}}
+      num_position_iterations: 16
+      num_velocity_iterations: 1
+      contact_offset: 0.02
+      rest_offset: 0.0
+      bounce_threshold_velocity: 0.2
+      max_depenetration_velocity: 100.0
+      default_buffer_size_multiplier: 5.0
+      max_gpu_contact_pairs: 8388608
+      num_subscenes: ${....num_subscenes}
+      contact_collection: 1
+  task:
+    randomize: false
+    randomization_params:
+      frequency: 600
+      observations:
+        range:
+        - 0
+        - 0.002
+        operation: additive
+        distribution: gaussian
+      actions:
+        range:
+        - 0.0
+        - 0.02
+        operation: additive
+        distribution: gaussian
+      sim_params:
+        gravity:
+          range:
+          - 0
+          - 0.4
+          operation: additive
+          distribution: gaussian
+          schedule: linear
+          schedule_steps: 3000
+      actor_params:
+        op3:
+          color: true
+          rigid_body_properties:
+            mass:
+              range:
+              - 0.5
+              - 1.5
+              operation: scaling
+              distribution: uniform
+              setup_only: true
+              schedule: linear
+              schedule_steps: 3000
+          rigid_shape_properties:
+            friction:
+              num_buckets: 500
+              range:
+              - 0.7
+              - 1.3
+              operation: scaling
+              distribution: uniform
+              schedule: linear
+              schedule_steps: 3000
+            restitution:
+              range:
+              - 0.0
+              - 0.7
+              operation: scaling
+              distribution: uniform
+              schedule: linear
+              schedule_steps: 3000
+          dof_properties:
+            damping:
+              range:
+              - 0.5
+              - 1.5
+              operation: scaling
+              distribution: uniform
+              schedule: linear
+              schedule_steps: 3000
+            stiffness:
+              range:
+              - 0.5
+              - 1.5
+              operation: scaling
+              distribution: uniform
+              schedule: linear
+              schedule_steps: 3000
+            lower:
+              range:
+              - 0
+              - 0.01
+              operation: additive
+              distribution: gaussian
+              schedule: linear
+              schedule_steps: 3000
+            upper:
+              range:
+              - 0
+              - 0.01
+              operation: additive
+              distribution: gaussian
+              schedule: linear
+              schedule_steps: 3000
+train:
+  params:
+    seed: ${...seed}
+    algo:
+      name: a2c_continuous
+    defaultJointAngles:
+      head_pan: 0
+      head_tilt: 0
+      l_el: 1.4
+      l_index_base: 0
+      l_index_middle: 0
+      l_index_tip: 0
+      l_mid_base: 0
+      l_mid_middle: 0
+      l_mid_tip: 0
+      l_sho_pitch: 0
+      l_sho_roll: 1
+      l_thumb_base: 0
+      l_thumb_middle: 0
+      l_thumb_tip: 0
+      l_wrist: 0
+      r_el: -1.4
+      r_index_base: 0
+      r_index_middle: 0
+      r_index_tip: 0
+      r_mid_base: 0
+      r_mid_middle: 0
+      r_mid_tip: 0
+      r_sho_pitch: 0
+      r_sho_roll: -1
+      r_thumb_base: 0
+      r_thumb_middle: 0
+      r_thumb_tip: 0
+      r_wrist: 0
+    model:
+      name: continuous_a2c_logstd
+    network:
+      name: actor_critic
+      separate: false
+      space:
+        continuous:
+          mu_activation: None
+          sigma_activation: None
+          mu_init:
+            name: default
+          sigma_init:
+            name: const_initializer
+            val: 0
+          fixed_sigma: true
+      mlp:
+        units:
+        - 256
+        - 128
+        - 64
+        activation: elu
+        d2rl: false
+        initializer:
+          name: default
+        regularizer:
+          name: None
+    load_checkpoint: ${if:${...checkpoint},True,False}
+    load_path: ${...checkpoint}
+    config:
+      name: ${resolve_default:OP3,${....experiment}}
+      full_experiment_name: ${.name}
+      env_name: rlgpu
+      multi_gpu: false
+      mixed_precision: true
+      normalize_input: true
+      normalize_value: true
+      value_bootstrap: true
+      num_actors: ${....task.env.numEnvs}
+      reward_shaper:
+        scale_value: 1.0
+      normalize_advantage: true
+      gamma: 0.99
+      tau: 0.95
+      e_clip: 0.2
+      learning_rate: 0.0005
+      lr_schedule: adaptive
+      kl_threshold: 0.008from .control_module import control
+      score_to_win: 20000
+      max_epochs: ${resolve_default:1000,${....max_iterations}}
+      save_best_after: 100
+      save_frequency: 100
+      print_stats: true
+      grad_norm: 1.0
+      entropy_coef: 0.0
+      truncate_grads: true
+      ppo: true
+      horizon_length: 32
+      minibatch_size: 65536
+      mini_epochs: 5
+      critic_coef: 4
+      clip_value: true
+      seq_len: 4
+      bounds_loss_coef: 0.0001
+      control: null
+      stiffness: 10000.0
+      damping: 2000.0
+      actionScale: 0.5
+      controlFrequencyInv: 1
+pbt:
+  enabled: false
+task_name: ${task.name}
+experiment: ''
+num_envs: 8
+seed: 42
+torch_deterministic: false
+max_iterations: ''
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: false
+checkpoint: ''
+sigma: ''
+multi_gpu: false
+wandb_activate: false
+wandb_group: ''
+wandb_name: ${train.params.config.name}
+wandb_entity: ''
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir: ''
+capture_video: false
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: true
+headless: false
